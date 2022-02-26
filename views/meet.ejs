@@ -16,19 +16,9 @@
       <h2>Details</h2>
       <form action="/meet" method="post">
         <div class="form-group">
-          <label for="date">Date:</label>
-          <input type="datetime" name="date1" placeholder="YYYY-MM-DD" />
-        </div>
-
-        <div class="form-group">
-            <label for="time">Time:</label>
-            <input
-              type="time"
-              class="form-control"
-              id="time"
-              placeholder="Enter Time"
-              name="time1"
-            />
+          <label for="date">Schedule: </label>
+          <input type="datetime-local" name="date1" id="dateH">
+          <!-- <input type="datetime" name="date1" placeholder="YYYY-MM-DD" /> -->
         </div>
 
         <!-- <div class="form-group">
@@ -64,4 +54,8 @@
       </form>
     </div>
   </body>
+  <script type="text/javascript">
+    var todayDate = new Date().toISOString().slice(0,16);
+    document.getElementById("dateH").min = todayDate;
+  </script>
 </html>

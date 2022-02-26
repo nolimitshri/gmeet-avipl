@@ -6,7 +6,15 @@ var GoogleStrategy = require('passport-google-oauth20').Strategy;
 const Meeting = require('google-meet-api').meet;
 const ejs = require("ejs");
 const res = require('express/lib/response');
-var date, time, link;
+const Meet = require("./model/gmeet");
+const mongoose = require('mongoose');
+
+mongoose.connect("mongodb://localhost:27017/meetAviplDB", {useNewUrlParser: true})
+.then(() => console.log("Mongo Connected........"))
+.catch((e) => console.log(e));
+
+
+var fullD, date, time;
 
 app.use(express.urlencoded({extended: true}));
 app.use(express.json());
@@ -32,7 +40,16 @@ passport.use(new GoogleStrategy({
             description: "description",
             checking:0
         }).then(function (result) {
-            link = result;
+            const link = result;
+            // console.log(link);
+            // console.log(fullD.replace("T", " "));
+            const newMeet = new Meet({
+                link: result,
+                date: fullD.replace("T", " ")
+            });
+
+            newMeet.save();
+
             console.log("The meeting Link is: "+result);            
         }).catch((error) => {
             console.log(error)
@@ -41,8 +58,12 @@ passport.use(new GoogleStrategy({
     }
 ));
 
+app.get("/fail", (req, res)=>{
+    res.send("FAILED!!");
+})
+
 app.get('/auth/callback',
-    passport.authenticate('google', { failureRedirect: '/', successRedirect: "/done" })
+    passport.authenticate('google', { failureRedirect: '/', successRedirect: "/" })
 );
 
 app.get('/auth',
@@ -58,21 +79,22 @@ app.get("/meet", (req, res) => {
 });
 
 app.post("/meet", async(req, res) => {
-    var {date1, time1} = req.body;
+    var {date1} = req.body;
+    fullD = date1;
+    fullD = fullD.concat(":00.000Z");
     // Validation RegEx for correct YYYY-MM-DD date if true then redirect to /auth else re-render this route.
-    console.log(date1, time1);
-    date = date1;
-    time = time1;
+    date = date1.split('T')[0];
+    time = date1.split('T')[1];
     res.redirect("/auth");
+    // res.send("Hello");
 });
 
 app.get('/',function(req,res){
-    // if(link === undefined){
-    //     res.redirect("/meet");
-    // }
-    // res.json({Status: "Success", Message: `The Meeting is on ${date}`, Link: link});
-    console.log(link);
-    res.send("done");
+    if(link !== undefined){
+        console.log(link);
+        res.send(link + " This is the link !!!")
+    }
+    res.send("done" + link);
 })
 
 app.listen(port, function (err) {
